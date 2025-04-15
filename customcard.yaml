@@ -1,0 +1,277 @@
+type: custom:html-template-card
+title: Liiga Goalie Statistics Leaders
+ignore_line_breaks: true
+refresh_entity_ids:
+  - sensor.time
+content: |
+  <style>
+    .liiga-goalies-container {
+      font-family: Arial, sans-serif;
+      max-width: 100%;
+      margin: 0 auto;
+    }
+    
+    .category-selector {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    
+    .category-btn {
+      background-color: #f0f0f0;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    
+    .category-btn.active {
+      background-color: #2196F3;
+      color: white;
+    }
+    
+    .category-btn:hover:not(.active) {
+      background-color: #ddd;
+    }
+    
+    .liiga-goalie-title {
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: #333;
+      text-align: center;
+    }
+    
+    .liiga-goalies {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+    }
+    
+    .liiga-goalie-card {
+      flex: 0 0 auto;
+      width: 180px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 10px;
+    }
+    
+    .goalie-header {
+      background-color: #222;
+      color: white;
+      padding: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .goalie-header .player-number {
+      font-weight: bold;
+      font-size: 16px;
+    }
+    
+    .goalie-img-container {
+      position: relative;
+      width: 100%;
+      background-color: #f0f0f0;
+      aspect-ratio: 1;
+      overflow: hidden;
+    }
+    
+    .goalie-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .goalie-name {
+      font-weight: bold;
+      text-align: center;
+      padding: 8px 5px;
+      font-size: 16px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .goalie-position {
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+      margin-top: -5px;
+    }
+    
+    .goalie-stats {
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+      margin: 10px 0;
+      color: #1a1a1a;
+    }
+    
+    .stats-breakdown {
+      display: flex;
+      justify-content: center;
+      color: #666;
+      font-size: 14px;
+    }
+    
+    .record-breakdown {
+      display: flex;
+      justify-content: center;
+      color: #444;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+    
+    .stats-breakdown span {
+      margin: 0 5px;
+    }
+    
+    .last-updated {
+      text-align: right;
+      font-size: 12px;
+      color: #666;
+      margin-top: 10px;
+      font-style: italic;
+    }
+    
+    /* Team color indicators */
+    .team-indicator {
+      width: 100%;
+      height: 5px;
+    }
+    
+    /* Team colors */
+    .karpat { background-color: #009345; }
+    .tappara { background-color: #0066B1; }
+    .hifk { background-color: #E31E24; }
+    .lukko { background-color: #0072CE; }
+    .pelicans { background-color: #009FDF; }
+    .ilves { background-color: #FFDD00; }
+    .hpk { background-color: #FF6600; }
+    .jyp { background-color: #000000; }
+    .kalpa { background-color: #FFDD00; }
+    .sport { background-color: #E31937; }
+    .tps { background-color: #000000; }
+    .kookoo { background-color: #F7AF1D; }
+    .saipa { background-color: #FFDD00; }
+    .assat { background-color: #e4021b; }
+    .jukurit { background-color: #00B0CA; }
+    
+    /* Default color for unknown teams */
+    .default-team { background-color: #333333; }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .liiga-goalie-card {
+        width: 150px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .liiga-goalies {
+        gap: 10px;
+      }
+      .liiga-goalie-card {
+        width: 120px;
+      }
+      .goalie-name {
+        font-size: 14px;
+      }
+      .goalie-stats {
+        font-size: 20px;
+      }
+    }
+  </style>
+  
+  <div class="liiga-goalies-container">
+    <!-- Category selector - dropdown or button group -->
+    <div class="category-selector">
+      {% set categories = [
+        {'id': 'savepercentage', 'name': 'Save %', 'sensor': 'sensor.liiga_goalie_save_percentage_leaders'},
+        {'id': 'shutouts', 'name': 'Shutouts', 'sensor': 'sensor.liiga_goalie_shutouts_leaders'},
+        {'id': 'goalsagainstavg', 'name': 'GAA', 'sensor': 'sensor.liiga_goalie_goals_against_avg_leaders'},
+        {'id': 'wins', 'name': 'Wins', 'sensor': 'sensor.liiga_goalie_wins_leaders'}
+      ] %}
+      
+      {% set rotation_categories = ['savepercentage', 'shutouts', 'goalsagainstavg', 'wins'] %}
+      
+      {# Determine which category to display based on current minute #}
+      {% set current_minute = now().minute %}
+      {% set display_index = current_minute % 4 %}
+      {% set active_category = rotation_categories[display_index] %}
+      
+      {% for category in categories %}
+        {% if states(category.sensor) != 'unknown' and states(category.sensor) != 'unavailable' %}
+          <button 
+            class="category-btn {% if category.id == active_category %}active{% endif %}"
+          >
+            {{ category.name }}
+          </button>
+        {% endif %}
+      {% endfor %}
+    </div>
+    
+    <h2 class="liiga-goalie-title">
+      {% if active_category == 'savepercentage' %}
+        Save Percentage Leaders
+      {% elif active_category == 'shutouts' %}
+        Shutout Leaders
+      {% elif active_category == 'goalsagainstavg' %}
+        Goals Against Average Leaders
+      {% elif active_category == 'wins' %}
+        Wins Leaders
+      {% endif %}
+    </h2>
+    
+    {% for category in categories %}
+      {% set sensor_name = category.sensor %}
+      {% if states(sensor_name) != 'unknown' and states(sensor_name) != 'unavailable' %}
+        <div style="display: {% if category.id == active_category %}block{% else %}none{% endif %};">
+          <div class="liiga-goalies">
+            {% set leaders = state_attr(sensor_name, 'leaders')|default([]) %}
+            {% for leader in leaders %}
+              <div class="liiga-goalie-card">
+                {% set team_class = leader.team|lower|replace(' ', '')|replace('-', '') %}
+                <div class="team-indicator {{ team_class if team_class in ['karpat', 'tappara', 'hifk', 'lukko', 'pelicans', 'ilves', 'hpk', 'jyp', 'kalpa', 'sport', 'tps', 'kookoo', 'saipa', 'assat', 'jukurit'] else 'default-team' }}"></div>
+                <div class="goalie-header">
+                  <span class="player-number">#{{ leader.number if leader.number else '?' }}</span>
+                  <span>{{ leader.team }}</span>
+                </div>
+                <div class="goalie-img-container">
+                  {% if leader.image_url %}
+                    <img class="goalie-img" src="{{ leader.image_url }}" alt="{{ leader.name }}" onerror="this.src='/local/images/player-placeholder.png'">
+                  {% else %}
+                    <img class="goalie-img" src="/local/images/player-placeholder.png" alt="{{ leader.name }}">
+                  {% endif %}
+                </div>
+                <div class="goalie-name">{{ leader.name }}</div>
+                <div class="goalie-position">{{ leader.position }}</div>
+                <div class="goalie-stats">{{ leader.value }}</div>
+                <div class="stats-breakdown">
+                  <span>Games: {{ leader.games }}</span>
+                </div>
+                <div class="record-breakdown">
+                  <span>{{ leader.wins }}-{{ leader.losses }}-{{ leader.ties }}</span>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+          
+          <div class="last-updated">
+            Last updated: {{ state_attr(sensor_name, 'last_updated')|default('Unknown') }}
+          </div>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
