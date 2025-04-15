@@ -1,0 +1,11 @@
+{
+  "domain": "liigagoalies",
+  "name": "Liiga Goalie Statistics",
+  "version": "1.0.0",
+  "documentation": "https://github.com/yourusername/liigagoalies",
+  "dependencies": [],
+  "codeowners": ["@yourusername"],
+  "requirements": [],
+  "config_flow": true,
+  "iot_class": "cloud_polling"
+}
