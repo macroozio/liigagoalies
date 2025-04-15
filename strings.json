@@ -1,0 +1,23 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Liiga Goalie Statistics API",
+        "description": "Set up Liiga Goalie Statistics integration. Available categories include: savepercentage, shutouts, goalsagainstavg, wins, losses, ties, saves, xgea, games",
+        "data": {
+          "url": "API URL",
+          "categories": "Categories (comma separated)",
+          "top_n": "Number of goalies to show in each leaderboard"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect",
+      "invalid_data": "Invalid data returned from API",
+      "unknown": "Unexpected error"
+    },
+    "abort": {
+      "already_configured": "This Liiga Goalie Statistics API is already configured"
+    }
+  }
+}
